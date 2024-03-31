@@ -1,0 +1,14 @@
+email@hotmail.com
+firstname.lastname@hotmail.com
+email@subdomain.hotmail.com
+firstname+lastname@example.com
+email@hotmail.uk
+email@yahoo.com
+“email”@gmail.com
+1234567890@gmail.com
+email@libero-one.com
+_______@gmail.com
+email@example.name
+email@example.museum
+email@example.co.jp
+firstname-lastname@example.com

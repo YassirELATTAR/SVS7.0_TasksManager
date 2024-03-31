@@ -1,9 +1,11 @@
 import os
+from datetime import datetime
 import tkinter
-import tkinter.messagebox
+from tkinter import messagebox
 import customtkinter
 import tkinter as tk
 from tkinter import filedialog
+from CTkMessagebox import CTkMessagebox
 
 #Setting the appearance:
 customtkinter.set_appearance_mode("System")
@@ -69,8 +71,8 @@ class MyApp(customtkinter.CTk):
         self.home_frame.grid_columnconfigure(0, weight=1)
         self.home_frame.grid_rowconfigure(2, weight=1)
 
-        self.home_frame_large_image_label = customtkinter.CTkLabel(self.home_frame, text="Home Sweet Home")
-        self.home_frame_large_image_label.grid(row=1, column=0, padx=20, pady=10)
+        self.home_frame_large_image_label = customtkinter.CTkLabel(self.home_frame, text="Home Sweet Home", font=("Times",20,"bold"))
+        self.home_frame_large_image_label.grid(row=1, column=0, padx=20, pady=(40,30))
 
         self.login_frame = LoginFrame(master=self.home_frame)
         self.login_frame.grid(row=2, column=0, sticky="nsew")
@@ -81,16 +83,17 @@ class MyApp(customtkinter.CTk):
         self.dir_and_files_frame.rowconfigure(2,weight=1)
         self.dir_and_files_frame.columnconfigure(0,weight=1)
 
-        self.dir_and_files_frame_label = customtkinter.CTkLabel(self.dir_and_files_frame,corner_radius=0,fg_color="transparent",text="Welcome to the Directories and Files Manager",font=("Times",16,"bold"))
-        self.dir_and_files_frame_label.grid(row=1,column=0,pady=(20,0),sticky="nsew")
+        self.dir_and_files_frame_label = customtkinter.CTkLabel(self.dir_and_files_frame,corner_radius=0,fg_color="transparent",text="Welcome to the Directories and Files Manager", font=("Times",20,"bold"))
+        self.dir_and_files_frame_label.grid(row=1,column=0,pady=(40,30),sticky="nsew")
         # create tabview
-        self.files_dir_tabview = customtkinter.CTkTabview(self.dir_and_files_frame,fg_color="transparent")
+        self.files_dir_tabview = customtkinter.CTkTabview(self.dir_and_files_frame,fg_color="transparent",anchor="center")
         self.files_dir_tabview.columnconfigure(1,weight=1)
         self.files_dir_tabview.grid(row=2, column=0, padx=0, pady=(20, 0), sticky="nsew")
         self.files_dir_tabview.add("Create Folders")
         self.files_dir_tabview.add("Remove Dublicates")
         self.files_dir_tabview.add("Sort by ISP")
         self.files_dir_tabview.add("Files Combiner")
+        self.files_dir_tabview.add("Collect Specific lines")
 
         #Frame for folders creation manager:
         self.create_folders_frame = customtkinter.CTkFrame(self.files_dir_tabview.tab("Create Folders"),fg_color="transparent")
@@ -117,28 +120,32 @@ class MyApp(customtkinter.CTk):
         self.remove_dublicate_textbox = customtkinter.CTkTextbox(self.remove_dublicates_frame,width=600)
         self.remove_dublicate_textbox.grid(row=1, columnspan=3, padx=20, pady=(20, 0), sticky="nsew")
 
-        self.select_origin_file_button= customtkinter.CTkButton(self.remove_dublicates_frame, text="Select Original File",width=150,command=self.select_file)
+        self.select_origin_file_button= customtkinter.CTkButton(self.remove_dublicates_frame, text="Select Original File",width=150,command=self.select_dubs_orginal_file)
         self.select_origin_file_button.grid(row=2, column=0, padx=0, pady=(20, 10))
         self.select_second_file_button = customtkinter.CTkButton(self.remove_dublicates_frame, text="Select Second File",width=150,command=self.select_file)
         self.select_second_file_button.grid(row=2,column=1,  padx=0, pady=(20, 10))
         self.process_dublicates_button = customtkinter.CTkButton(self.remove_dublicates_frame, text="Remove Dublicates",width=150,command=self.removeDublicates)
         self.process_dublicates_button.grid(row=2,column=2,  padx=0, pady=(20, 10))
-        self.remove_dubs_result_label = customtkinter.CTkLabel(self.remove_dublicates_frame,text="results here...", font=("Arial",12,"italic"))
+        self.remove_dubs_result_label = customtkinter.CTkLabel(self.remove_dublicates_frame,text="", font=("Arial",12,"italic"))
         self.remove_dubs_result_label.grid(row=3,columnspan=3, padx=20, pady=(10, 0), sticky="nw")
 
         #Frame for sorting list of emails by ISP:
         self.sortby_isp_frame = customtkinter.CTkFrame(self.files_dir_tabview.tab("Sort by ISP"),fg_color="transparent")
-        self.sortby_isp_frame.rowconfigure(2,weight=1)
-        self.sortby_isp_frame.columnconfigure(2,weight=1)
+        self.sortby_isp_frame.rowconfigure(1,weight=0)
+        self.sortby_isp_frame.columnconfigure(1,weight=0)
+        self.sortby_isp_frame.grid(row=0,column=0,padx=0,pady=0,sticky="nsew")
         self.sortby_isp_frame.pack(expand=True)
 
-        self.sortby_isp_title_label = customtkinter.CTkLabel(self.sortby_isp_frame,text="select a file to split into others according to the ISP",fg_color="transparent",font=("Arial",14,"italic"))
-        self.sortby_isp_title_label.grid(row=0,column=0,columnspan=2, padx=10, pady=10, sticky="nw")
-        self.sortby_isp_button = customtkinter.CTkButton(self.sortby_isp_frame, text="Remove Dublicates",width=150,command=self.sortbyisp)
-        self.sortby_isp_button.grid(row=2,column=1, padx=10, pady=10,sticky="nsew")
+        self.sortby_isp_title_label = customtkinter.CTkLabel(self.sortby_isp_frame,text="Select a file to split into others according to the ISP",fg_color="transparent",font=('Arial',14,"bold"))
+        self.sortby_isp_title_label.grid(row=0,column=0, padx=10, pady=10, sticky="nw")
+        self.sortby_isp_button = customtkinter.CTkButton(self.sortby_isp_frame, text="Split by ISP",width=150,command=self.sortbyisp)
+        self.sortby_isp_button.grid(row=1,column=0, padx=10, pady=10,sticky="nsew")
 
-        ###GOT TIRED HERE... TO BE FINISHED LATER (review the two options on tabview: remove dubs and sort by isp)
-        
+        self.isp_sorted_result_frame = customtkinter.CTkScrollableFrame(self.sortby_isp_frame,width=600,fg_color="transparent")
+        self.isp_sorted_result_frame.grid(row=2,column=0,columnspan=2,padx=10,pady=10,sticky="nsew")
+
+
+        #Frame for combining files (.txt) / (.eml) into one file without repeatition of lines:
 
 
         # Bounce Manager Frame:
@@ -158,7 +165,26 @@ class MyApp(customtkinter.CTk):
 
     # Function to sort a file by ISP:
     def sortbyisp(self):
-        pass
+        selected_file = self.select_file()
+        outputFolder = self.getOutputDirectory()
+        domain_counts = {}
+        with open(selected_file, "r") as infile:
+            #lines = infile.read().strip().splitlines()
+            for line in infile:
+                email = line.strip()
+                domain = email.split("@")[-1]  # Extract domain name
+                # Update domain counts
+                domain_counts[domain] = domain_counts.get(domain, 0) + 1
+                output_file = os.path.join(outputFolder, f"{domain}.txt")
+                with open(output_file, "a") as outfile:  # Append mode for efficiency
+                    outfile.write(email + "\n")
+
+        self.isp_sorted_result_frame.rowconfigure(len(domain_counts))
+        index = 0
+        for domain, count in domain_counts.items():
+            self.isp_split_result_label= customtkinter.CTkLabel(self.isp_sorted_result_frame,text=f"{domain} contains {count} addresses",font=("Arial",14,"italic"))
+            self.isp_split_result_label.grid(row=index,column=0,padx=20,pady=(5,0),sticky="nw")
+            index = index + 1
     
     # Function to create the folders from a list of names:
     def createFolders(self):
@@ -176,7 +202,30 @@ class MyApp(customtkinter.CTk):
             
     #Function to reemove dublicates from a file using another file or a list:
     def removeDublicates(self):
-        pass
+        dubs_lines_textbox = self.remove_dublicate_textbox.get("0.0",customtkinter.END).strip().split('\n')
+        duplicate_lines = []
+        if self.dubs_original_file =="":
+            messagebox.showwarning("Original File Missing","Kindly select an original file first")
+        elif dubs_lines_textbox == [''] and self.selected_file =="":
+            messagebox.showwarning("Seriously?","You should enter either a list in the text box or a file containing dublicates.")
+        else:
+            output_file = os.path.join(self.getOutputDirectory(),f"dublicate_less_file_on{datetime.now().strftime('%B%d').lower()}.txt")
+            if self.selected_file != "":
+                with open(self.selected_file, "r") as duplicates:
+                    duplicate_lines = duplicates.read().strip().splitlines()
+
+            for line in dubs_lines_textbox:
+                duplicate_lines.append(line)
+
+            
+            with open(self.dubs_original_file, "r") as original, open(output_file, "w") as output:
+                original_lines = original.read().strip().splitlines()
+                for line in original_lines:
+                    if line not in duplicate_lines:
+                        output.write(f"{line}\n")
+
+            self.remove_dubs_result_label.configure(text=f"Result saved in: {output_file}")
+
 
     #Function to get the output directory path:
     def getOutputDirectory(self):
@@ -194,13 +243,12 @@ class MyApp(customtkinter.CTk):
         return self.selected_file
     
     #Function to select original file for dubs removal:
-    def select_file(self):
+    def select_dubs_orginal_file(self):
         root = tk.Tk()
         root.withdraw()
         #folder_path = filedialog.askdirectory(title="Select Folder Where your emails are saved")
         self.dubs_original_file = filedialog.askopenfilename(title="Select file to remove dublicates from its content",filetypes=[("Text Files","*.txt"),("All Files","*")])
         
-
 
     def select_frame_by_name(self, name):
         # set button color for selected button
@@ -311,7 +359,7 @@ class LoginFrame(customtkinter.CTkFrame):
             self.logout_button.pack(pady=10)
             
         else:
-            tkinter.messagebox.showerror("Login Error", "Invalid username or password.")
+            messagebox.showerror("Login Error", "Invalid username or password.")
 
     def show_task_list(self,tasks):
         if self.tasks_frame is None:
