@@ -14,6 +14,7 @@ class MyApp(customtkinter.CTk):
     username ="default"
     password = ""
     selected_file =""
+    dubs_original_file= ""
     def __init__(self):
         super().__init__()
 
@@ -111,7 +112,7 @@ class MyApp(customtkinter.CTk):
         self.remove_dublicates_frame.rowconfigure(4,weight=1)
         self.remove_dublicates_frame.columnconfigure(3,weight=1)
         self.remove_dublicates_frame.pack(expand=True)
-        self.remove_dubs_title_label = customtkinter.CTkLabel(self.remove_dublicates_frame,text="Enter lines (emails or otherwise) or/and select a file to remove its content:",font=("Arial",12))
+        self.remove_dubs_title_label = customtkinter.CTkLabel(self.remove_dublicates_frame,text="Enter lines (emails or otherwise) or/and select a file to remove its content:",font=('Arial',14,"bold"))
         self.remove_dubs_title_label.grid(row=0,columnspan=3, padx=20,pady=(20,0),sticky="nw")
         self.remove_dublicate_textbox = customtkinter.CTkTextbox(self.remove_dublicates_frame,width=600)
         self.remove_dublicate_textbox.grid(row=1, columnspan=3, padx=20, pady=(20, 0), sticky="nsew")
@@ -122,6 +123,8 @@ class MyApp(customtkinter.CTk):
         self.select_second_file_button.grid(row=2,column=1,  padx=0, pady=(20, 10))
         self.process_dublicates_button = customtkinter.CTkButton(self.remove_dublicates_frame, text="Remove Dublicates",width=150,command=self.removeDublicates)
         self.process_dublicates_button.grid(row=2,column=2,  padx=0, pady=(20, 10))
+        self.remove_dubs_result_label = customtkinter.CTkLabel(self.remove_dublicates_frame,text="results here...", font=("Arial",12,"italic"))
+        self.remove_dubs_result_label.grid(row=3,columnspan=3, padx=20, pady=(10, 0), sticky="nw")
 
         #Frame for sorting list of emails by ISP:
         self.sortby_isp_frame = customtkinter.CTkFrame(self.files_dir_tabview.tab("Sort by ISP"),fg_color="transparent")
@@ -189,6 +192,14 @@ class MyApp(customtkinter.CTk):
         #folder_path = filedialog.askdirectory(title="Select Folder Where your emails are saved")
         self.selected_file = filedialog.askopenfilename(title="Select file to process",filetypes=[("Text Files","*.txt"),("All Files","*")])
         return self.selected_file
+    
+    #Function to select original file for dubs removal:
+    def select_file(self):
+        root = tk.Tk()
+        root.withdraw()
+        #folder_path = filedialog.askdirectory(title="Select Folder Where your emails are saved")
+        self.dubs_original_file = filedialog.askopenfilename(title="Select file to remove dublicates from its content",filetypes=[("Text Files","*.txt"),("All Files","*")])
+        
 
 
     def select_frame_by_name(self, name):
