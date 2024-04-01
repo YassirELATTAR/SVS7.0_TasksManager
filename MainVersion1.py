@@ -66,6 +66,16 @@ class MyApp(customtkinter.CTk):
                                                        anchor="w", command=self.ms_accounts_manager_button_event)
         self.ms_accounts_manager_button.grid(row=6, column=0, sticky="ew")
 
+        self.sentiment_analysis_button = customtkinter.CTkButton(self.navigation_frame, corner_radius=0, height=40, border_spacing=10, text="Sentiment Analysis",
+                                                      fg_color="transparent", text_color=("gray10", "gray90"), hover_color=("gray70", "gray30"),
+                                                       anchor="w", command=self.sentiment_analysis_button_event)
+        self.sentiment_analysis_button.grid(row=7, column=0, sticky="ew")
+
+        self.quit_app_button = customtkinter.CTkButton(self.navigation_frame,corner_radius=0, height=40, border_spacing=10, text="Quit App",
+                                                      fg_color="darkred", text_color=("gray10", "gray90"), hover_color=("gray70", "gray30"),
+                                                       anchor="w", command=self.quit_app)
+        self.quit_app_button.grid(row=11,column=0,sticky="ew")
+
         #Creating Home Frame:
         self.home_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
         self.home_frame.grid_columnconfigure(0, weight=1)
@@ -88,7 +98,7 @@ class MyApp(customtkinter.CTk):
         # create tabview
         self.files_dir_tabview = customtkinter.CTkTabview(self.dir_and_files_frame,fg_color="transparent",anchor="center")
         self.files_dir_tabview.columnconfigure(1,weight=1)
-        self.files_dir_tabview.grid(row=2, column=0, padx=0, pady=(20, 0), sticky="nsew")
+        self.files_dir_tabview.grid(row=2, column=0, padx=0, pady=20, sticky="nsew")
         self.files_dir_tabview.add("Create Folders")
         self.files_dir_tabview.add("Remove Dublicates")
         self.files_dir_tabview.add("Sort by ISP")
@@ -146,6 +156,22 @@ class MyApp(customtkinter.CTk):
 
 
         #Frame for combining files (.txt) / (.eml) into one file without repeatition of lines:
+        self.files_combiner_frame = customtkinter.CTkFrame(self.files_dir_tabview.tab("Files Combiner"),fg_color="transparent")
+        self.files_combiner_frame.grid(row=0,column=0,padx=20,pady=20,sticky="nsew")
+        self.files_combiner_frame.rowconfigure(2,weight=1)
+        self.files_combiner_frame.columnconfigure(2,weight=1)
+        self.files_combiner_frame.pack(fill=customtkinter.BOTH)
+        self.files_combiner_label = customtkinter.CTkLabel(self.files_combiner_frame,text="Select files type to combine:")
+        self.files_combiner_label.grid(row=0,column=1,padx=40,pady=20,sticky="new")
+        self.files_combiner_options = customtkinter.CTkComboBox(self.files_combiner_frame,values=[".txt",".csv"])
+        self.files_combiner_options.grid(row=0,column=2,padx=10,pady=20,sticky="ne")
+        self.files_combiner_files_select_button = customtkinter.CTkButton(self.files_combiner_frame,text="Select Directory")
+        self.files_combiner_files_select_button.grid(row=1,column=1,padx=40,pady=20,sticky="new")
+        self.files_combiner_process_button= customtkinter.CTkButton(self.files_combiner_frame,text="Process")
+        self.files_combiner_process_button.grid(row=1,column=2,padx=10,pady=20,sticky="ne")
+        self.files_combiner_result_frame = customtkinter.CTkScrollableFrame(self.files_combiner_frame,fg_color="white")
+        self.files_combiner_result_frame.grid(row=2,column=0,columnspan=3,padx=20,pady=20,sticky="nsew")
+
 
 
         # Bounce Manager Frame:
@@ -160,6 +186,7 @@ class MyApp(customtkinter.CTk):
         # Microsoft Accounts Manager
         self.ms_accounts_manager_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="green")
 
+        self.sentiment_analysis_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="yellow")
         #Select default frame: Home
         self.select_frame_by_name("home")
 
@@ -258,6 +285,7 @@ class MyApp(customtkinter.CTk):
         self.smtps_manager_button.configure(fg_color=("gray75", "gray25") if name == "smtp_manager_frame" else "transparent")
         self.add_namecheap_records_button.configure(fg_color=("gray75", "gray25") if name == "add_namecheap_records_frame" else "transparent")
         self.ms_accounts_manager_button.configure(fg_color=("gray75", "gray25") if name == "ms_accounts_manager_frame" else "transparent")
+        self.sentiment_analysis_button.configure(fg_color=("gray75", "gray25") if name == "sentiment_analysis_frame" else "transparent")
 
         #Show selected frame
         if name == "home":
@@ -284,6 +312,10 @@ class MyApp(customtkinter.CTk):
             self.ms_accounts_manager_frame.grid(row=0, column=1, sticky="nsew")
         else:
             self.ms_accounts_manager_frame.grid_forget()
+        if name == "sentiment_analysis_frame":
+            self.sentiment_analysis_frame.grid(row=0, column=1, sticky="nsew")
+        else:
+            self.sentiment_analysis_frame.grid_forget()
 
     #Navigation Functions for the buttons:
     def home_button_event(self):
@@ -301,6 +333,10 @@ class MyApp(customtkinter.CTk):
         self.select_frame_by_name("add_namecheap_records_frame")
     def ms_accounts_manager_button_event(self):
         self.select_frame_by_name("ms_accounts_manager_frame")
+    def sentiment_analysis_button_event(self):
+        self.select_frame_by_name("sentiment_analysis_frame")
+    def quit_app(self):
+        self.destroy()
 
 
 
