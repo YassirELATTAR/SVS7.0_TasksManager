@@ -1,3 +1,4 @@
+import random
 import os
 from datetime import datetime
 import tkinter
@@ -6,6 +7,7 @@ import customtkinter
 import tkinter as tk
 from tkinter import filedialog
 from CTkMessagebox import CTkMessagebox
+import threading
 
 #Setting the appearance:
 customtkinter.set_appearance_mode("System")
@@ -17,6 +19,8 @@ class MyApp(customtkinter.CTk):
     password = ""
     selected_file =""
     dubs_original_file= ""
+    file_type = ""
+    selected_directory =""
     def __init__(self):
         super().__init__()
 
@@ -163,16 +167,18 @@ class MyApp(customtkinter.CTk):
         self.files_combiner_frame.pack(fill=customtkinter.BOTH)
         self.files_combiner_label = customtkinter.CTkLabel(self.files_combiner_frame,text="Select files type to combine:")
         self.files_combiner_label.grid(row=0,column=1,padx=40,pady=20,sticky="new")
-        self.files_combiner_options = customtkinter.CTkComboBox(self.files_combiner_frame,values=[".txt",".csv"])
+        self.optionmenu_var = customtkinter.StringVar(value="Select File Type")
+        self.files_combiner_options = customtkinter.CTkOptionMenu(self.files_combiner_frame,values=[".txt",".csv"],
+                                       command=self.selected_file_type,
+                                       variable=self.optionmenu_var)
         self.files_combiner_options.grid(row=0,column=2,padx=10,pady=20,sticky="ne")
-        self.files_combiner_files_select_button = customtkinter.CTkButton(self.files_combiner_frame,text="Select Directory")
+        self.files_combiner_files_select_button = customtkinter.CTkButton(self.files_combiner_frame,text="Select Directory",command=self.select_directory)
         self.files_combiner_files_select_button.grid(row=1,column=1,padx=40,pady=20,sticky="new")
-        self.files_combiner_process_button= customtkinter.CTkButton(self.files_combiner_frame,text="Process")
+        self.files_combiner_process_button= customtkinter.CTkButton(self.files_combiner_frame,text="Process",command=self.combining_files_thread)
         self.files_combiner_process_button.grid(row=1,column=2,padx=10,pady=20,sticky="ne")
-        self.files_combiner_result_frame = customtkinter.CTkScrollableFrame(self.files_combiner_frame,fg_color="white")
+        self.files_combiner_result_frame = customtkinter.CTkScrollableFrame(self.files_combiner_frame,fg_color="transparent")
         self.files_combiner_result_frame.grid(row=2,column=0,columnspan=3,padx=20,pady=20,sticky="nsew")
-
-
+        self.files_combiner_result_frame.columnconfigure(0,weight=1)
 
         # Bounce Manager Frame:
         self.bounce_management_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="red")
@@ -253,6 +259,47 @@ class MyApp(customtkinter.CTk):
 
             self.remove_dubs_result_label.configure(text=f"Result saved in: {output_file}")
 
+    def selected_file_type(self,choice):
+        self.file_type = choice
+
+    def select_directory(self):
+        self.selected_directory = self.getOutputDirectory()
+    def combining_files_thread(self):
+    # Create thread for calculating seconds
+        seconds_thread = threading.Thread(target=self.combine_files)
+        seconds_thread.start()
+
+    #Function to combine files:
+    def combine_files(self):
+        if self.selected_directory == "":
+            messagebox.showerror("Hold on", "You should select a directory first.")
+        elif self.file_type == "":
+            messagebox.showerror("Check","Have you sleected the type of files")
+        elif self.file_type == ".txt":
+            combined_content = set()
+            count = 0
+            for filename in os.listdir(self.selected_directory):
+                if filename.endswith(".txt"):
+                    file_path = os.path.join(self.selected_directory, filename)
+                    with open(file_path, 'r', encoding='utf-8', errors='ignore') as file:
+                        content = file.read()
+                        combined_content.update(content.splitlines())
+                    self.result_label= customtkinter.CTkLabel(self.files_combiner_result_frame,text=f"{count+1} - Combining: {filename}")
+                    self.result_label.grid(row=count,column=0,padx=10,sticky="nw")
+                    count = count + 1
+            today = datetime.now()
+            formatted_date = today.strftime('%B%d').lower()
+            os.makedirs(os.path.join(self.selected_directory, f"CombinedFilesOn_{formatted_date}"), exist_ok=True)
+            output_file_path = os.path.join(os.path.join(self.selected_directory, f"CombinedFilesOn_{formatted_date}"), f"File_{formatted_date}_{random.randint(1000, 9999)}.txt")
+            with open(output_file_path, 'w', encoding='utf-8') as output_file:
+                output_file.write("\n".join(combined_content))
+            self.result_label= customtkinter.CTkLabel(self.files_combiner_result_frame,text=f"Saved file: {output_file_path}",font=("Arial",16,'bold'))
+            self.result_label.grid(row=count,column=0,padx=10,sticky="nsew")
+        elif self.file_type == ".csv":
+            print("CSV FILE")
+        else:
+            messagebox.showwarning("Opps...","Something went wrong. Try again khaylah")
+               
 
     #Function to get the output directory path:
     def getOutputDirectory(self):
