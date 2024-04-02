@@ -8,6 +8,8 @@ import tkinter as tk
 from tkinter import filedialog
 from CTkMessagebox import CTkMessagebox
 import threading
+import csv
+from collections import defaultdict
 
 #Setting the appearance:
 customtkinter.set_appearance_mode("System")
@@ -174,7 +176,7 @@ class MyApp(customtkinter.CTk):
         self.files_combiner_options.grid(row=0,column=2,padx=10,pady=20,sticky="ne")
         self.files_combiner_files_select_button = customtkinter.CTkButton(self.files_combiner_frame,text="Select Directory",command=self.select_directory)
         self.files_combiner_files_select_button.grid(row=1,column=1,padx=40,pady=20,sticky="new")
-        self.files_combiner_process_button= customtkinter.CTkButton(self.files_combiner_frame,text="Process",command=self.combining_files_thread)
+        self.files_combiner_process_button= customtkinter.CTkButton(self.files_combiner_frame,text="Process",command=self.combine_files)
         self.files_combiner_process_button.grid(row=1,column=2,padx=10,pady=20,sticky="ne")
         self.files_combiner_result_frame = customtkinter.CTkScrollableFrame(self.files_combiner_frame,fg_color="transparent")
         self.files_combiner_result_frame.grid(row=2,column=0,columnspan=3,padx=20,pady=20,sticky="nsew")
@@ -276,30 +278,80 @@ class MyApp(customtkinter.CTk):
         elif self.file_type == "":
             messagebox.showerror("Check","Have you sleected the type of files")
         elif self.file_type == ".txt":
-            combined_content = set()
-            count = 0
-            for filename in os.listdir(self.selected_directory):
-                if filename.endswith(".txt"):
-                    file_path = os.path.join(self.selected_directory, filename)
-                    with open(file_path, 'r', encoding='utf-8', errors='ignore') as file:
-                        content = file.read()
-                        combined_content.update(content.splitlines())
-                    self.result_label= customtkinter.CTkLabel(self.files_combiner_result_frame,text=f"{count+1} - Combining: {filename}")
-                    self.result_label.grid(row=count,column=0,padx=10,sticky="nw")
-                    count = count + 1
-            today = datetime.now()
-            formatted_date = today.strftime('%B%d').lower()
-            os.makedirs(os.path.join(self.selected_directory, f"CombinedFilesOn_{formatted_date}"), exist_ok=True)
-            output_file_path = os.path.join(os.path.join(self.selected_directory, f"CombinedFilesOn_{formatted_date}"), f"File_{formatted_date}_{random.randint(1000, 9999)}.txt")
-            with open(output_file_path, 'w', encoding='utf-8') as output_file:
-                output_file.write("\n".join(combined_content))
-            self.result_label= customtkinter.CTkLabel(self.files_combiner_result_frame,text=f"Saved file: {output_file_path}",font=("Arial",16,'bold'))
-            self.result_label.grid(row=count,column=0,padx=10,sticky="nsew")
+            my_thread = threading.Thread(target=self.combine_text_files)
+            my_thread.start()
         elif self.file_type == ".csv":
-            print("CSV FILE")
+            my_thread = threading.Thread(target=self.combine_csv_file)
+            my_thread.start()
         else:
             messagebox.showwarning("Opps...","Something went wrong. Try again khaylah")
                
+    #Function to combine txt files:
+    def combine_text_files(self):
+        combined_content = set()
+        count = 0
+        for filename in os.listdir(self.selected_directory):
+            if filename.endswith(".txt"):
+                file_path = os.path.join(self.selected_directory, filename)
+                with open(file_path, 'r', encoding='utf-8', errors='ignore') as file:
+                    content = file.read()
+                    combined_content.update(content.splitlines())
+                self.result_label= customtkinter.CTkLabel(self.files_combiner_result_frame,text=f"{count+1} - Combining: {filename}")
+                self.result_label.grid(row=count,column=0,padx=10,sticky="nw")
+                count = count + 1
+        today = datetime.now()
+        formatted_date = today.strftime('%B%d').lower()
+        os.makedirs(os.path.join(self.selected_directory, f"CombinedFilesOn_{formatted_date}"), exist_ok=True)
+        output_file_path = os.path.join(os.path.join(self.selected_directory, f"CombinedFilesOn_{formatted_date}"), f"File_{formatted_date}_{random.randint(1000, 9999)}.txt")
+        with open(output_file_path, 'w', encoding='utf-8') as output_file:
+            output_file.write("\n".join(combined_content))
+        self.result_label= customtkinter.CTkLabel(self.files_combiner_result_frame,text=f"Saved file: {output_file_path}",font=("Arial",16,'bold'))
+        self.result_label.grid(row=count,column=0,padx=10,sticky="nsew")
+    
+
+    #Function to combine csv files:
+    def combine_csv_file(self):
+        today = datetime.now()
+        formatted_date = today.strftime('%B%d').lower()
+        #Create the combinedCSV directory (if it doesn't exist)
+        combined_dir = os.path.join(self.selected_directory, f"CombinedCSV_on_{formatted_date}")
+        os.makedirs(combined_dir, exist_ok=True)
+
+        # Dictionary to store header sets and corresponding data lists
+        header_data = defaultdict(list)
+        count = 0
+        # Iterate through CSV files in the directory
+        for filename in os.listdir(self.selected_directory):
+            if filename.endswith(".csv"):
+                file_path = os.path.join(self.selected_directory, filename)
+                with open(file_path, "r") as csvfile:
+                    reader = csv.reader(csvfile)
+                    header = next(reader)  # Read the header row
+
+                    # Convert header list to a tuple
+                    header_tuple = tuple(header)
+
+                    # Check if header is already encountered
+                    if header_tuple not in header_data:
+                        header_data[header_tuple] = []
+
+                    header_data[header_tuple].extend(reader)
+            self.result_label= customtkinter.CTkLabel(self.files_combiner_result_frame,text=f"{count+1} - Combining: {filename}")
+            self.result_label.grid(row=count,column=0,padx=10,sticky="nw")
+            count = count + 1
+        # Write merged data to separate CSV files
+        for header, data_rows in header_data.items():
+            try:
+                output_filename = os.path.join(combined_dir, f"_".join(header[:4]) + ".csv")
+                with open(output_filename, "w", newline="" , errors="ignore") as csvfile:
+                    writer = csv.writer(csvfile)
+                    writer.writerow(header) 
+                    writer.writerows(data_rows)
+            except Exception as e:
+                self.result_label= customtkinter.CTkLabel(self.files_combiner_result_frame,text=f"Error saving: {output_filename}",font=("Arial",14,'italic'),fg_color="#FF2400")
+                self.result_label.grid(row=count,column=0,padx=10,sticky="nsew")
+        self.result_label= customtkinter.CTkLabel(self.files_combiner_result_frame,text=f"Files Saved to: {combined_dir}",font=("Arial",16,'bold'))
+        self.result_label.grid(row=count,column=0,padx=10,sticky="nsew")
 
     #Function to get the output directory path:
     def getOutputDirectory(self):
