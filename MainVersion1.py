@@ -182,6 +182,33 @@ class MyApp(customtkinter.CTk):
         self.files_combiner_result_frame.grid(row=2,column=0,columnspan=3,padx=20,pady=20,sticky="nsew")
         self.files_combiner_result_frame.columnconfigure(0,weight=1)
 
+        #Frame to collect specific lines:
+        self.collect_specific_lines_frame = customtkinter.CTkFrame(self.files_dir_tabview.tab("Collect Specific lines"),fg_color="transparent")
+        self.collect_specific_lines_frame.grid(row=0,column=0,padx=20,pady=20,sticky="nsew")
+        self.collect_specific_lines_frame.pack(fill=customtkinter.BOTH)
+        self.collect_specific_lines_frame.rowconfigure(2,weight=1)
+        self.collect_specific_lines_frame.columnconfigure(4,weight=1)
+        self.collect_specific_lines_files_choice_label = customtkinter.CTkLabel(self.collect_specific_lines_frame,text="Select 'Miltiple Files' if you want to search in more than one", font=('Arial',14,"bold"))
+        self.collect_specific_lines_files_choice_label.grid(row=0,column=0,columnspan=3,padx=(40,20),pady=20,sticky="nw")
+        self.specific_lines_switch = customtkinter.CTkSwitch(self.collect_specific_lines_frame, text=f"Multiple Files")
+        self.specific_lines_switch.grid(row=0,column=4,padx=20,pady=20,sticky="ne")
+        self.specific_lines_condition1_entry = customtkinter.CTkEntry(self.collect_specific_lines_frame,placeholder_text="Enter pattern before",font=("Arial",14,"italic"))
+        self.specific_lines_condition1_entry.grid(row=1,column=0,padx=(40,20),pady=20,sticky="nw")
+        self.specific_lines_custom_regx = customtkinter.CTkEntry(self.collect_specific_lines_frame,placeholder_text="Custom RegEx...",font=("Arial",14,'italic'))
+        self.specific_lines_custom_regx.grid(row=1,column=1,columnspan=3,padx=20,pady=20,sticky="new")
+        self.specific_lines_condition2_entry = customtkinter.CTkEntry(self.collect_specific_lines_frame,placeholder_text="Enter pattern after",font=("Arial",14,"italic"))
+        self.specific_lines_condition2_entry.grid(row=1,column=4,padx=20,pady=20,sticky="ne")
+        self.specific_lines_dir_file_button = customtkinter.CTkButton(self.collect_specific_lines_frame,text="Select File/ Folder")
+        self.specific_lines_dir_file_button.grid(row=2,column=0,padx=(40,20),pady=20,sticky="nw")
+        self.specific_lines_output_directory = customtkinter.CTkButton(self.collect_specific_lines_frame,text="Select Output Folder")
+        self.specific_lines_output_directory.grid(row=2,column=1,columnspan=2,padx=20,pady=20,sticky="new")
+        self.specific_lines_process = customtkinter.CTkButton(self.collect_specific_lines_frame,text="Process Search")
+        self.specific_lines_process.grid(row=2,column=4,padx=20,pady=20,sticky="ne")
+        self.specific_lines_result_frame = customtkinter.CTkScrollableFrame(self.collect_specific_lines_frame,fg_color="transparent")
+        self.specific_lines_result_frame.grid(row=3,column=0,columnspan=5,padx=(40,20),pady=20,sticky="nsew")
+        self.specific_lines_result_label = customtkinter.CTkLabel(self.specific_lines_result_frame,text="Results should be shown below:",font=("Arial",14,'italic'))
+        self.specific_lines_result_label.pack(side=customtkinter.LEFT)
+
         # Bounce Manager Frame:
         self.bounce_management_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="red")
 
