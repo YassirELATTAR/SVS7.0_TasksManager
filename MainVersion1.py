@@ -23,6 +23,9 @@ class MyApp(customtkinter.CTk):
     dubs_original_file= ""
     file_type = ""
     selected_directory =""
+    specific_file = ""
+    specific_folder = ""
+
     def __init__(self):
         super().__init__()
 
@@ -110,6 +113,7 @@ class MyApp(customtkinter.CTk):
         self.files_dir_tabview.add("Sort by ISP")
         self.files_dir_tabview.add("Files Combiner")
         self.files_dir_tabview.add("Collect Specific lines")
+        self.files_dir_tabview.add("Collect Specific Files")
 
         #Frame for folders creation manager:
         self.create_folders_frame = customtkinter.CTkFrame(self.files_dir_tabview.tab("Create Folders"),fg_color="transparent")
@@ -198,11 +202,11 @@ class MyApp(customtkinter.CTk):
         self.specific_lines_custom_regx.grid(row=1,column=1,columnspan=3,padx=20,pady=20,sticky="new")
         self.specific_lines_condition2_entry = customtkinter.CTkEntry(self.collect_specific_lines_frame,placeholder_text="Enter pattern after",font=("Arial",14,"italic"))
         self.specific_lines_condition2_entry.grid(row=1,column=4,padx=20,pady=20,sticky="ne")
-        self.specific_lines_dir_file_button = customtkinter.CTkButton(self.collect_specific_lines_frame,text="Select File/ Folder")
+        self.specific_lines_dir_file_button = customtkinter.CTkButton(self.collect_specific_lines_frame,text="Select File/ Folder",command=self.select_specific_file_or_dir)
         self.specific_lines_dir_file_button.grid(row=2,column=0,padx=(40,20),pady=20,sticky="nw")
-        self.specific_lines_output_directory = customtkinter.CTkButton(self.collect_specific_lines_frame,text="Select Output Folder")
+        self.specific_lines_output_directory = customtkinter.CTkButton(self.collect_specific_lines_frame,text="Select Output Folder",command=self.select_directory)
         self.specific_lines_output_directory.grid(row=2,column=1,columnspan=2,padx=20,pady=20,sticky="new")
-        self.specific_lines_process = customtkinter.CTkButton(self.collect_specific_lines_frame,text="Process Search")
+        self.specific_lines_process = customtkinter.CTkButton(self.collect_specific_lines_frame,text="Process Search",command=self.find_specific_lines)
         self.specific_lines_process.grid(row=2,column=4,padx=20,pady=20,sticky="ne")
         self.specific_lines_result_frame = customtkinter.CTkScrollableFrame(self.collect_specific_lines_frame,fg_color="transparent")
         self.specific_lines_result_frame.grid(row=3,column=0,columnspan=5,padx=(40,20),pady=20,sticky="nsew")
@@ -293,11 +297,35 @@ class MyApp(customtkinter.CTk):
 
     def select_directory(self):
         self.selected_directory = self.getOutputDirectory()
+
     def combining_files_thread(self):
     # Create thread for calculating seconds
         seconds_thread = threading.Thread(target=self.combine_files)
         seconds_thread.start()
 
+    #Function to select file for the specific lines collecting:
+    def select_specific_file_or_dir (self):
+        try:
+            if(self.specific_lines_switch.get()==0):
+                self.specific_file = self.select_file()
+            else:
+                self.specific_folder = self.getOutputDirectory()
+        except Exception as e:
+            messagebox.showerror("Error occured", f"There is an error: {e}")
+    
+    #Function to find the specific lines:
+    def find_specific_lines (self):
+        if self.specific_folder == "" and self.specific_file == "":
+            messagebox.showerror("Are you kidding?", "You have to select either a file or a folder to search through")
+        elif self.selected_directory == "":
+            messagebox.showerror("Are you kidding? 2", "You have to select output folder first")
+        elif self.specific_file != "" and self.specific_lines_switch.get() == 0:
+            messagebox.showinfo("You", "You are going to search through a file")
+        elif self.specific_folder != "" and self.specific_lines_switch.get() == 1:
+            messagebox.showinfo("You", "you are going to search through many files in a FOLDER")
+        else:
+            messagebox.showerror("Error occured", "There is some error occured, make sure you select entries correctly")
+    
     #Function to combine files:
     def combine_files(self):
         if self.selected_directory == "":
@@ -391,8 +419,13 @@ class MyApp(customtkinter.CTk):
     def select_file(self):
         root = tk.Tk()
         root.withdraw()
-        #folder_path = filedialog.askdirectory(title="Select Folder Where your emails are saved")
-        self.selected_file = filedialog.askopenfilename(title="Select file to process",filetypes=[("Text Files","*.txt"),("All Files","*")])
+        self.selected_file = filedialog.askopenfilename(
+            title="Select file to process",
+            filetypes=[
+                ("Text Files", "*.txt"),  # Allow .txt files
+                ("All Files", "*")        # Allow all other file types
+            ]
+        )
         return self.selected_file
     
     #Function to select original file for dubs removal:
