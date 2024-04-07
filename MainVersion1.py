@@ -9,6 +9,7 @@ from tkinter import filedialog
 from CTkMessagebox import CTkMessagebox
 import threading
 import csv
+import re
 from collections import defaultdict
 
 #Setting the appearance:
@@ -198,20 +199,20 @@ class MyApp(customtkinter.CTk):
         self.specific_lines_switch.grid(row=0,column=4,padx=20,pady=20,sticky="ne")
         self.specific_lines_condition1_entry = customtkinter.CTkEntry(self.collect_specific_lines_frame,placeholder_text="Enter pattern before",font=("Arial",14,"italic"))
         self.specific_lines_condition1_entry.grid(row=1,column=0,padx=(40,20),pady=20,sticky="nw")
-        self.specific_lines_custom_regx = customtkinter.CTkEntry(self.collect_specific_lines_frame,placeholder_text="Custom RegEx...",font=("Arial",14,'italic'))
-        self.specific_lines_custom_regx.grid(row=1,column=1,columnspan=3,padx=20,pady=20,sticky="new")
+        self.specific_lines_custom_regx = customtkinter.CTkLabel(self.collect_specific_lines_frame,text="EMPTY PATTERNS MEAN: Before = ^  |  After = $",font=("Arial",13,'italic'))
+        self.specific_lines_custom_regx.grid(row=1,column=1,columnspan=3,padx=20,pady=20,sticky="nsew")
         self.specific_lines_condition2_entry = customtkinter.CTkEntry(self.collect_specific_lines_frame,placeholder_text="Enter pattern after",font=("Arial",14,"italic"))
         self.specific_lines_condition2_entry.grid(row=1,column=4,padx=20,pady=20,sticky="ne")
         self.specific_lines_dir_file_button = customtkinter.CTkButton(self.collect_specific_lines_frame,text="Select File/ Folder",command=self.select_specific_file_or_dir)
         self.specific_lines_dir_file_button.grid(row=2,column=0,padx=(40,20),pady=20,sticky="nw")
         self.specific_lines_output_directory = customtkinter.CTkButton(self.collect_specific_lines_frame,text="Select Output Folder",command=self.select_directory)
-        self.specific_lines_output_directory.grid(row=2,column=1,columnspan=2,padx=20,pady=20,sticky="new")
+        self.specific_lines_output_directory.grid(row=2,column=1,padx=20,pady=20,sticky="nw")
         self.specific_lines_process = customtkinter.CTkButton(self.collect_specific_lines_frame,text="Process Search",command=self.find_specific_lines)
         self.specific_lines_process.grid(row=2,column=4,padx=20,pady=20,sticky="ne")
         self.specific_lines_result_frame = customtkinter.CTkScrollableFrame(self.collect_specific_lines_frame,fg_color="transparent")
         self.specific_lines_result_frame.grid(row=3,column=0,columnspan=5,padx=(40,20),pady=20,sticky="nsew")
         self.specific_lines_result_label = customtkinter.CTkLabel(self.specific_lines_result_frame,text="Results should be shown below:",font=("Arial",14,'italic'))
-        self.specific_lines_result_label.pack(side=customtkinter.LEFT)
+        self.specific_lines_result_label.grid(row=0,column=0,padx=10,pady=20,sticky="nw")
 
         # Bounce Manager Frame:
         self.bounce_management_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="red")
@@ -320,12 +321,66 @@ class MyApp(customtkinter.CTk):
         elif self.selected_directory == "":
             messagebox.showerror("Are you kidding? 2", "You have to select output folder first")
         elif self.specific_file != "" and self.specific_lines_switch.get() == 0:
-            messagebox.showinfo("You", "You are going to search through a file")
+            my_thread = threading.Thread(target=self.specific_file_search())
+            my_thread.start()
         elif self.specific_folder != "" and self.specific_lines_switch.get() == 1:
-            messagebox.showinfo("You", "you are going to search through many files in a FOLDER")
+            my_thread = threading.Thread(target=self.specific_folder_search())
+            my_thread.start()
         else:
             messagebox.showerror("Error occured", "There is some error occured, make sure you select entries correctly")
     
+
+    #Function to search in one file:
+    def specific_file_search(self):
+        matching_lines = self.extract_lines_between_conditions(filename=self.specific_file,start=self.specific_lines_condition1_entry.get(),end=self.specific_lines_condition2_entry.get())
+        self.specific_lines_result_frame.rowconfigure(len(matching_lines)+1)
+        today = datetime.now()
+        formatted_date = today.strftime('%B%d').lower()
+        filepath = os.path.join(self.selected_directory, f"Specific_Lines_Found_on_{formatted_date}.txt")
+        index=0
+        with open(filepath, "w") as outfile:
+            for line in matching_lines:
+                outfile.write(f"{line}\n")
+                index = index +1
+                label_result = customtkinter.CTkLabel(self.specific_lines_result_frame,text=f"{index} - {line}")
+                label_result.grid(row=index,column=0,padx=20,pady=(0,5),sticky="nw")
+    
+    #Function to search in a folder:
+    def specific_folder_search(self):
+        matching_lines = []
+        for file in os.listdir(self.specific_folder):
+            if file.endswith(".txt"):
+                matching_lines = matching_lines + self.extract_lines_between_conditions(filename=os.path.join(self.specific_folder,file),start=self.specific_lines_condition1_entry.get(),end=self.specific_lines_condition2_entry.get())
+        self.specific_lines_result_frame.rowconfigure(len(matching_lines)+1)
+        today = datetime.now()
+        formatted_date = today.strftime('%B%d').lower()
+        filepath = os.path.join(self.selected_directory, f"Specific_Lines_Found_on_{formatted_date}.txt")
+        index=0
+        with open(filepath, "w") as outfile:
+            for line in matching_lines:
+                outfile.write(f"{line}\n")
+                index = index +1
+                label_result = customtkinter.CTkLabel(self.specific_lines_result_frame,text=f"{index} - {line}")
+                label_result.grid(row=index,column=0,padx=20,pady=(0,5),sticky="nw")
+
+    
+    #Function to search for a specific line through a file given in parameter alongside the starting and ending conditions:
+    def extract_lines_between_conditions(self, filename, start="", end=""):
+        if start == "":
+            start = "^"
+        if end == "":
+            end="$"
+        pattern = fr"{start}(.*?){end}"  # Regex pattern with optional start and end
+        matching_lines = []
+
+        with open(filename, "r") as file:
+            for line in file:
+                match = re.search(pattern, line)
+                if match:
+                    matching_lines.append(match.group(0))  # Extract the matched text
+
+        return matching_lines
+
     #Function to combine files:
     def combine_files(self):
         if self.selected_directory == "":

@@ -3,6 +3,7 @@ from tkinter import filedialog
 import os
 import csv
 from collections import defaultdict
+import re
 
 def merge_csv_files(directory):
     # Create the combinedCSV directory (if it doesn't exist)
@@ -39,6 +40,17 @@ def merge_csv_files(directory):
 
     print(f"Merged CSV files saved to: {combined_dir}")
 
+def select_file():
+        root = tk.Tk()
+        root.withdraw()
+        selected_file = filedialog.askopenfilename(
+            title="Select file to process",
+            filetypes=[
+                ("All Files", "*")        # Allow all other file types
+            ]
+        )
+        return selected_file
+
 
 def getOutputDirectory():
         root = tk.Tk()
@@ -47,6 +59,29 @@ def getOutputDirectory():
         return folder_path
 
 
-# Example usage
-directory = getOutputDirectory()  # Replace with your directory path
-merge_csv_files(directory)
+
+def extract_lines_between_conditions(filename, start="", end=""):
+    if start == "":
+        start = "^"
+    if end == "":
+        end="$"
+    pattern = fr"{start}(.*?){end}"  # Regex pattern with optional start and end
+    matching_lines = []
+
+    with open(filename, "r") as file:
+        for line in file:
+            match = re.search(pattern, line)
+            if match:
+                matching_lines.append(match.group(0))  # Extract the matched text
+
+    return matching_lines
+
+selected = select_file()
+
+start_marker = "an"
+end_marker = "@mac.com"
+extracted_content = extract_lines_between_conditions(selected, start_marker, end_marker)
+for line in extracted_content:
+    print(line)
+
+print(len(extracted_content))
