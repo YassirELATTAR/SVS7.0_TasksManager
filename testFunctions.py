@@ -76,12 +76,33 @@ def extract_lines_between_conditions(filename, start="", end=""):
 
     return matching_lines
 
-selected = select_file()
 
-start_marker = "an"
-end_marker = "@mac.com"
-extracted_content = extract_lines_between_conditions(selected, start_marker, end_marker)
-for line in extracted_content:
-    print(line)
+def move_files_containing_condition(source_folder, destination_folder, condition_string):
+  """Searches files in a source folder for a condition and moves matching files to a destination folder.
 
-print(len(extracted_content))
+  Args:
+      source_folder: The path to the folder containing the files to search.
+      destination_folder: The path to the folder where matching files will be moved.
+      condition_string: The string to search for within the files.
+  """
+
+  os.makedirs(destination_folder, exist_ok=True)  # Create destination folder if needed
+
+  for filename in os.listdir(source_folder):
+    if filename.endswith((".txt", ".eml", ".csv")):  # Check for supported extensions
+      filepath = os.path.join(source_folder, filename)
+
+      try:
+        with open(filepath, "r") as file:
+          if condition_string in file.read():  # Check if condition string is present
+            os.rename(filepath, os.path.join(destination_folder, filename))  # Move the file
+            print(f"Moved '{filename}' to the destination folder.")
+      except Exception as e:
+        print(f"Error processing '{filename}': {e}")  # Handle potential errors gracefully
+
+
+
+directoryOrigins = getOutputDirectory()
+directoryoutput = getOutputDirectory()
+condtion = "kami@gmail.com"
+move_files_containing_condition(directoryOrigins, directoryoutput,condtion)
