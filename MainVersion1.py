@@ -114,7 +114,6 @@ class MyApp(customtkinter.CTk):
         self.files_dir_tabview.add("Sort by ISP")
         self.files_dir_tabview.add("Files Combiner")
         self.files_dir_tabview.add("Collect Specific lines")
-        self.files_dir_tabview.add("Collect Specific Files")
 
         #Frame for folders creation manager:
         self.create_folders_frame = customtkinter.CTkFrame(self.files_dir_tabview.tab("Create Folders"),fg_color="transparent")
@@ -195,7 +194,7 @@ class MyApp(customtkinter.CTk):
         self.collect_specific_lines_frame.columnconfigure(4,weight=1)
         self.collect_specific_lines_files_choice_label = customtkinter.CTkLabel(self.collect_specific_lines_frame,text="Select 'Miltiple Files' if you want to search in more than one", font=('Arial',14,"bold"))
         self.collect_specific_lines_files_choice_label.grid(row=0,column=0,columnspan=3,padx=(40,20),pady=20,sticky="nw")
-        self.specific_lines_switch = customtkinter.CTkSwitch(self.collect_specific_lines_frame, text=f"Multiple Files")
+        self.specific_lines_switch = customtkinter.CTkSwitch(self.collect_specific_lines_frame, text=f"Multiple Files",command=self.save_specific_files_activate)
         self.specific_lines_switch.grid(row=0,column=4,padx=20,pady=20,sticky="ne")
         self.specific_lines_condition1_entry = customtkinter.CTkEntry(self.collect_specific_lines_frame,placeholder_text="Enter pattern before",font=("Arial",14,"italic"))
         self.specific_lines_condition1_entry.grid(row=1,column=0,padx=(40,20),pady=20,sticky="nw")
@@ -207,6 +206,7 @@ class MyApp(customtkinter.CTk):
         self.specific_lines_dir_file_button.grid(row=2,column=0,padx=(40,20),pady=20,sticky="nw")
         self.specific_lines_output_directory = customtkinter.CTkButton(self.collect_specific_lines_frame,text="Select Output Folder",command=self.select_directory)
         self.specific_lines_output_directory.grid(row=2,column=1,padx=20,pady=20,sticky="nw")
+        
         self.specific_lines_process = customtkinter.CTkButton(self.collect_specific_lines_frame,text="Process Search",command=self.find_specific_lines)
         self.specific_lines_process.grid(row=2,column=4,padx=20,pady=20,sticky="ne")
         self.specific_lines_result_frame = customtkinter.CTkScrollableFrame(self.collect_specific_lines_frame,fg_color="transparent")
@@ -230,6 +230,17 @@ class MyApp(customtkinter.CTk):
         #Select default frame: Home
         self.select_frame_by_name("home")
 
+    def save_specific_files_activate(self):
+        if self.specific_lines_switch.get()==1:
+            self.complete_files_search_checkBox = customtkinter.CTkCheckBox(self.collect_specific_lines_frame,text="Search Files Instead")
+            self.complete_files_search_checkBox.grid(row=2,column=3,padx=20,pady=20,sticky="new")
+            
+        else:
+            try:
+                self.complete_files_search_checkBox.destroy()
+            except:
+                pass
+    
     # Function to sort a file by ISP:
     def sortbyisp(self):
         selected_file = self.select_file()
